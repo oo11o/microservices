@@ -1,13 +1,24 @@
 import logo from './logo.svg';
 import './App.css';
+import axios from "axios";
 
-function App() {
+function App(){
+
+  const makeRequestApi = () => {
+      axios('/api/currentuser').then(response => {
+          console.log(response.data);
+      });
+  }
+
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-         TEST 2Edit UKR <code>src/App.js</code> and save to reload.
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <p>
+            Hello Developer
         </p>
         <a
           className="App-link"
@@ -18,6 +29,7 @@ function App() {
           Learn React
         </a>
       </header>
+      <button onClick={makeRequestApi}>Make api request</button>
     </div>
   );
 }
