@@ -1,0 +1,78 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: docker-micro-frontend
+    command: serve -s build -l 3000
+    restart: unless-stopped
+    environment:
+      - WDS_SOCKET_PORT=0
+    networks:
+      - docker-micro
+
+  api:
+    build: ./api
+    container_name: docker-micro-api
+    command: npm run start
+    restart: unless-stopped
+    environment:
+      - PORT=3030
+      - MONGO_URL=mongodb://api_db:27017/api
+      - AUTH_API_URL=http://auth:3101/api
+    depends_on:
+      - api_db
+    networks:
+      - docker-micro
+
+  auth:
+    build: ./auth
+    container_name: docker-micro-auth
+    command: npm run start
+    restart: unless-stopped
+    environment:
+      - PORT=3101
+      - MONGO_URL=mongodb://auth_db:27017/api
+      - API_URL=http://api:3030/api
+    depends_on:
+      - auth_db
+    networks:
+      - docker-micro
+
+  api_db:
+    image: mongo:4.4.6
+    container_name: docker-micro-api-db
+    volumes:
+      - mongodb_api:/data/db
+    networks:
+      - docker-micro
+
+  auth_db:
+    image: mongo:4.4.6
+    container_name: docker-micro-auth-db
+    volumes:
+      - mongodb_auth:/data/db
+    networks:
+      - docker-micro
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: docker-micro-nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx/nginx.conf.prod:/etc/nginx/conf.d/nginx.conf
+    depends_on:
+      - frontend
+      - auth
+      - api
+    networks:
+      - docker-micro
+
+volumes:
+  mongodb_api:
+  mongodb_auth:
+
+networks:
+  docker-micro:
+    driver: bridge
